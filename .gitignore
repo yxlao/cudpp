@@ -1,0 +1,3 @@
+build/
+apps/common/include/common_config.h
+include/cudpp_config.h
