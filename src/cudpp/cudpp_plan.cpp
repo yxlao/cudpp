@@ -480,9 +480,9 @@ CUDPPCompactPlan::CUDPPCompactPlan(CUDPPManager *mgr,
       CUDPP_SCAN,
       CUDPP_ADD,
       CUDPP_UINT,
-      (config.options & CUDPP_OPTION_BACKWARD) ?
+      static_cast<unsigned int>((config.options & CUDPP_OPTION_BACKWARD) ?
         CUDPP_OPTION_BACKWARD | CUDPP_OPTION_EXCLUSIVE :
-        CUDPP_OPTION_FORWARD  | CUDPP_OPTION_EXCLUSIVE
+        CUDPP_OPTION_FORWARD  | CUDPP_OPTION_EXCLUSIVE)
     };
     m_scanPlan = new CUDPPScanPlan(mgr, scanConfig, numElements, numRows, rowPitch);
 
