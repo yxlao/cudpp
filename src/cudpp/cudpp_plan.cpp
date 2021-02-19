@@ -3,10 +3,10 @@
 // -------------------------------------------------------------
 // $Revision: 3572$
 // $Date: 2007-11-19 13:58:06 +0000 (Mon, 19 Nov 2007) $
-// ------------------------------------------------------------- 
+// -------------------------------------------------------------
 // This source code is distributed under the terms of license.txt
 // in the root directory of this source distribution.
-// ------------------------------------------------------------- 
+// -------------------------------------------------------------
 
 #include "cudpp.h"
 #include "cudpp_manager.h"
@@ -38,7 +38,7 @@ CUDPPResult validateOptions(CUDPPConfiguration config, size_t numElements, size_
         ret = CUDPP_ERROR_ILLEGAL_CONFIGURATION; //!< @todo: add support for multi-row cudppCompact
 
     if (config.algorithm == CUDPP_TRIDIAGONAL) {
-        if (config.datatype != CUDPP_FLOAT && config.datatype != CUDPP_DOUBLE) 
+        if (config.datatype != CUDPP_FLOAT && config.datatype != CUDPP_DOUBLE)
             ret = CUDPP_ERROR_ILLEGAL_CONFIGURATION;
     }
 
@@ -54,21 +54,21 @@ CUDPPResult validateOptions(CUDPPConfiguration config, size_t numElements, size_
  */
 
 
-/** @brief Create a CUDPP plan 
-  * 
+/** @brief Create a CUDPP plan
+  *
   * A plan is a data structure containing state and intermediate storage space
-  * that CUDPP uses to execute algorithms on data.  A plan is created by 
+  * that CUDPP uses to execute algorithms on data.  A plan is created by
   * passing to cudppPlan() a CUDPPConfiguration that specifies the algorithm,
   * operator, datatype, and options.  The size of the data must also be passed
-  * to cudppPlan(), in the \a numElements, \a numRows, and \a rowPitch 
+  * to cudppPlan(), in the \a numElements, \a numRows, and \a rowPitch
   * arguments.  These sizes are used to allocate internal storage space at the
   * time the plan is created.  The CUDPP planner may use the sizes, options,
   * and information about the present hardware to choose optimal settings.
   *
   * Note that \a numElements is the maximum size of the array to be processed
-  * with this plan.  That means that a plan may be re-used to process (for 
-  * example, to sort or scan) smaller arrays.  
-  * 
+  * with this plan.  That means that a plan may be re-used to process (for
+  * example, to sort or scan) smaller arrays.
+  *
   * @param[out] planHandle A pointer to an opaque handle to the internal plan
   * @param[in]  cudppHandle A handle to an instance of the CUDPP library used for resource management
   * @param[in]  config The configuration struct specifying algorithm and options
@@ -80,9 +80,9 @@ CUDPPResult validateOptions(CUDPPConfiguration config, size_t numElements, size_
 CUDPP_DLL
 CUDPPResult cudppPlan(const CUDPPHandle  cudppHandle,
                       CUDPPHandle        *planHandle,
-                      CUDPPConfiguration config, 
-                      size_t             numElements, 
-                      size_t             numRows, 
+                      CUDPPConfiguration config,
+                      size_t             numElements,
+                      size_t             numRows,
                       size_t             rowPitch)
 {
     CUDPPResult result = CUDPP_SUCCESS;
@@ -123,7 +123,7 @@ CUDPPResult cudppPlan(const CUDPPHandle  cudppHandle,
         {
             plan = new CUDPPStringSortPlan(mgr, config, numElements, rowPitch);
             break;
-        }	
+        }
     case CUDPP_SEGMENTED_SCAN:
         {
             plan = new CUDPPSegmentedScanPlan(mgr, config, numElements);
@@ -176,7 +176,7 @@ CUDPPResult cudppPlan(const CUDPPHandle  cudppHandle,
         }
 
     default:
-        return CUDPP_ERROR_ILLEGAL_CONFIGURATION; 
+        return CUDPP_ERROR_ILLEGAL_CONFIGURATION;
         break;
     }
 
@@ -193,7 +193,7 @@ CUDPPResult cudppPlan(const CUDPPHandle  cudppHandle,
   *
   * Deletes the plan referred to by \a planHandle and all associated internal
   * storage.
-  * 
+  *
   * @param[in] planHandle The CUDPPHandle to the plan to be destroyed
   * @returns CUDPPResult indicating success or error condition
   */
@@ -231,7 +231,7 @@ CUDPPResult cudppDestroyPlan(CUDPPHandle planHandle)
         {
             delete static_cast<CUDPPStringSortPlan*>(plan);
             break;
-        }	
+        }
     case CUDPP_SEGMENTED_SCAN:
         {
             delete static_cast<CUDPPSegmentedScanPlan*>(plan);
@@ -283,7 +283,7 @@ CUDPPResult cudppDestroyPlan(CUDPPHandle planHandle)
             break;
         }
     default:
-        return CUDPP_ERROR_ILLEGAL_CONFIGURATION; 
+        return CUDPP_ERROR_ILLEGAL_CONFIGURATION;
         break;
     }
 
@@ -291,7 +291,7 @@ CUDPPResult cudppDestroyPlan(CUDPPHandle planHandle)
     return CUDPP_SUCCESS;
 }
 
-/** @brief Create a CUDPP Sparse Matrix Object 
+/** @brief Create a CUDPP Sparse Matrix Object
   *
   * The sparse matrix plan is a data structure containing state and
   * intermediate storage space that CUDPP uses to perform sparse
@@ -306,7 +306,7 @@ CUDPPResult cudppDestroyPlan(CUDPPHandle planHandle)
   * @param[out] sparseMatrixHandle A pointer to an opaque handle to the sparse matrix object
   * @param[in]  cudppHandle A handle to an instance of the CUDPP library used for resource management
   * @param[in]  config The configuration struct specifying algorithm and options
-  * @param[in]  numNonZeroElements The number of non zero elements in the sparse matrix 
+  * @param[in]  numNonZeroElements The number of non zero elements in the sparse matrix
   * @param[in]  numRows This is the number of rows in y, x and A for y = A * x
   * @param[in]  A The matrix data
   * @param[in]  h_rowIndices An array containing the index of the start of each row in \a A
@@ -315,10 +315,10 @@ CUDPPResult cudppDestroyPlan(CUDPPHandle planHandle)
   */
 CUDPP_DLL
 CUDPPResult cudppSparseMatrix(const CUDPPHandle  cudppHandle,
-                              CUDPPHandle        *sparseMatrixHandle, 
-                              CUDPPConfiguration config, 
-                              size_t             numNonZeroElements, 
-                              size_t             numRows, 
+                              CUDPPHandle        *sparseMatrixHandle,
+                              CUDPPConfiguration config,
+                              size_t             numNonZeroElements,
+                              size_t             numRows,
                               const void         *A,
                               const unsigned int *h_rowIndices,
                               const unsigned int *h_indices)
@@ -328,7 +328,7 @@ CUDPPResult cudppSparseMatrix(const CUDPPHandle  cudppHandle,
     CUDPPPlan *sparseMatrix;
     CUDPPManager *mgr = CUDPPManager::getManagerFromHandle(cudppHandle);
 
-    if ((config.algorithm != CUDPP_SPMVMULT) || 
+    if ((config.algorithm != CUDPP_SPMVMULT) ||
         (numNonZeroElements <= 0) || (numRows <= 0))
     {
         result = CUDPP_ERROR_ILLEGAL_CONFIGURATION;
@@ -340,8 +340,8 @@ CUDPPResult cudppSparseMatrix(const CUDPPHandle  cudppHandle,
         return result;
     }
 
-    sparseMatrix = 
-        new CUDPPSparseMatrixVectorMultiplyPlan(mgr, config, numNonZeroElements, A, 
+    sparseMatrix =
+        new CUDPPSparseMatrixVectorMultiplyPlan(mgr, config, numNonZeroElements, A,
                                                 h_rowIndices, h_indices, numRows);
 
     if (sparseMatrix)
@@ -360,8 +360,8 @@ CUDPPResult cudppSparseMatrix(const CUDPPHandle  cudppHandle,
   *
   * Deletes the sparse matrix data and plan referred to by \a
   * sparseMatrixHandle and all associated internal storage.
-  * 
-  * @param[in] sparseMatrixHandle The CUDPPHandle to the matrix object to be 
+  *
+  * @param[in] sparseMatrixHandle The CUDPPHandle to the matrix object to be
   *                               destroyed
   * @returns CUDPPResult indicating success or error condition
   */
@@ -371,7 +371,7 @@ CUDPPResult cudppDestroySparseMatrix(CUDPPHandle sparseMatrixHandle)
     if (sparseMatrixHandle == CUDPP_INVALID_HANDLE)
         return CUDPP_ERROR_INVALID_HANDLE;
 
-    CUDPPSparseMatrixVectorMultiplyPlan* plan = 
+    CUDPPSparseMatrixVectorMultiplyPlan* plan =
         getPlanPtrFromHandle<CUDPPSparseMatrixVectorMultiplyPlan>(sparseMatrixHandle);
     delete plan;
     plan = 0;
@@ -383,7 +383,7 @@ CUDPPResult cudppDestroySparseMatrix(CUDPPHandle sparseMatrixHandle)
 
 
 /** @brief Plan base class constructor
-  * 
+  *
   * @param[in]  mgr pointer to the CUDPPManager
   * @param[in]  config The configuration struct specifying algorithm and options
   * @param[in]  numElements The maximum number of elements to be processed
@@ -391,9 +391,9 @@ CUDPPResult cudppDestroySparseMatrix(CUDPPHandle sparseMatrixHandle)
   * @param[in]  rowPitch The pitch of the rows of input data, in elements
   */
 CUDPPPlan::CUDPPPlan(CUDPPManager *mgr,
-                     CUDPPConfiguration config, 
-                     size_t numElements, 
-                     size_t numRows, 
+                     CUDPPConfiguration config,
+                     size_t numElements,
+                     size_t numRows,
                      size_t rowPitch)
 : m_config(config),
   m_numElements(numElements),
@@ -404,7 +404,7 @@ CUDPPPlan::CUDPPPlan(CUDPPManager *mgr,
 }
 
 /** @brief Scan Plan constructor
-* 
+*
 * @param[in]  mgr pointer to the CUDPPManager
 * @param[in]  config The configuration struct specifying algorithm and options
 * @param[in]  numElements The maximum number of elements to be scanned
@@ -412,9 +412,9 @@ CUDPPPlan::CUDPPPlan(CUDPPManager *mgr,
 * @param[in]  rowPitch The pitch of the rows of input data, in elements
 */
 CUDPPScanPlan::CUDPPScanPlan(CUDPPManager *mgr,
-                             CUDPPConfiguration config, 
-                             size_t numElements, 
-                             size_t numRows, 
+                             CUDPPConfiguration config,
+                             size_t numElements,
+                             size_t numRows,
                              size_t rowPitch)
 : CUDPPPlan(mgr, config, numElements, numRows, rowPitch),
   m_blockSums(0),
@@ -433,13 +433,13 @@ CUDPPScanPlan::~CUDPPScanPlan()
 }
 
 /** @brief SegmentedScan Plan constructor
-* 
+*
 * @param[in]  mgr pointer to the CUDPPManager
 * @param[in]  config The configuration struct specifying options
 * @param[in]  numElements The maximum number of elements to be scanned
 */
 CUDPPSegmentedScanPlan::CUDPPSegmentedScanPlan(CUDPPManager *mgr,
-                                               CUDPPConfiguration config, 
+                                               CUDPPConfiguration config,
                                                size_t numElements)
 : CUDPPPlan(mgr, config, numElements, 1, 0),
   m_blockSums(0),
@@ -458,7 +458,7 @@ CUDPPSegmentedScanPlan::~CUDPPSegmentedScanPlan()
 }
 
 /** @brief Compact Plan constructor
-* 
+*
 * @param[in]  mgr pointer to the CUDPPManager
 * @param[in]  config The configuration struct specifying options
 * @param[in]  numElements The maximum number of elements to be compacted
@@ -466,23 +466,23 @@ CUDPPSegmentedScanPlan::~CUDPPSegmentedScanPlan()
 * @param[in]  rowPitch The pitch of the rows of input data, in elements
 */
 CUDPPCompactPlan::CUDPPCompactPlan(CUDPPManager *mgr,
-                                   CUDPPConfiguration config, 
-                                   size_t numElements, 
-                                   size_t numRows, 
+                                   CUDPPConfiguration config,
+                                   size_t numElements,
+                                   size_t numRows,
                                    size_t rowPitch)
 : CUDPPPlan(mgr, config, numElements, numRows, rowPitch),
   m_d_outputIndices(0)
 {
     assert(numRows == 1); //!< @todo Add support for multirow compaction
 
-    CUDPPConfiguration scanConfig = 
-    { 
-      CUDPP_SCAN, 
-      CUDPP_ADD, 
-      CUDPP_UINT, 
-      (config.options & CUDPP_OPTION_BACKWARD) ? 
-        CUDPP_OPTION_BACKWARD | CUDPP_OPTION_EXCLUSIVE : 
-        CUDPP_OPTION_FORWARD  | CUDPP_OPTION_EXCLUSIVE 
+    CUDPPConfiguration scanConfig =
+    {
+      CUDPP_SCAN,
+      CUDPP_ADD,
+      CUDPP_UINT,
+      (config.options & CUDPP_OPTION_BACKWARD) ?
+        CUDPP_OPTION_BACKWARD | CUDPP_OPTION_EXCLUSIVE :
+        CUDPP_OPTION_FORWARD  | CUDPP_OPTION_EXCLUSIVE
     };
     m_scanPlan = new CUDPPScanPlan(mgr, scanConfig, numElements, numRows, rowPitch);
 
@@ -497,13 +497,13 @@ CUDPPCompactPlan::~CUDPPCompactPlan()
 }
 
 /** @brief Reduce Plan constructor
-* 
+*
 * @param[in]  mgr pointer to the CUDPPManager
 * @param[in]  config The configuration struct specifying options
 * @param[in]  numElements The maximum number of elements to be reduced
 */
 CUDPPReducePlan::CUDPPReducePlan(CUDPPManager *mgr,
-                                 CUDPPConfiguration config, 
+                                 CUDPPConfiguration config,
                                  size_t numElements)
 : CUDPPPlan(mgr, config, numElements, 1, 0),
   m_threadsPerBlock(REDUCE_CTA_SIZE),
@@ -551,25 +551,25 @@ CUDPPMergeSortPlan::~CUDPPMergeSortPlan()
 */
 CUDPPStringSortPlan::CUDPPStringSortPlan(CUDPPManager *mgr,
 										 CUDPPConfiguration config,
-										 size_t numElements, 
+										 size_t numElements,
 										 size_t stringArrayLength)
 : CUDPPPlan(mgr, config, numElements, stringArrayLength, 0)
-{ 
+{
 	m_subPartitions = 4;
 	m_swapPoint = 64;
-	
-	CUDPPConfiguration scanConfig = 
-    { 
-      CUDPP_SCAN, 
-      CUDPP_ADD, 
-      CUDPP_UINT, 
-      CUDPP_OPTION_FORWARD | CUDPP_OPTION_EXCLUSIVE 
-    };    
-	
 
-	m_scanPlan = new CUDPPScanPlan(mgr, scanConfig, numElements+1, 1, 0);	
+	CUDPPConfiguration scanConfig =
+    {
+      CUDPP_SCAN,
+      CUDPP_ADD,
+      CUDPP_UINT,
+      CUDPP_OPTION_FORWARD | CUDPP_OPTION_EXCLUSIVE
+    };
+
+
+	m_scanPlan = new CUDPPScanPlan(mgr, scanConfig, numElements+1, 1, 0);
 	m_numElements = numElements;
-	allocStringSortStorage(this);	
+	allocStringSortStorage(this);
 }
 
 /** @brief String sort plan destructor */
@@ -578,39 +578,39 @@ CUDPPStringSortPlan::~CUDPPStringSortPlan()
     freeStringSortStorage(this);
 }
 /** @brief Radix Sort Plan constructor
-* 
+*
 * @param[in]  mgr pointer to the CUDPPManager
 * @param[in]  config The configuration struct specifying options
 * @param[in]  numElements The maximum number of elements to be sorted
 
 */
-CUDPPRadixSortPlan::CUDPPRadixSortPlan(CUDPPManager *mgr, 
-                                       CUDPPConfiguration config, 
+CUDPPRadixSortPlan::CUDPPRadixSortPlan(CUDPPManager *mgr,
+                                       CUDPPConfiguration config,
                                        size_t numElements)
 : CUDPPPlan(mgr, config, numElements, 1, 0),
   m_bKeysOnly((m_config.options & CUDPP_OPTION_KEYS_ONLY) != 0),
   m_bBackward((m_config.options & CUDPP_OPTION_BACKWARD) != 0),
   m_scanPlan(0),
-  m_tempKeys(0),    
+  m_tempKeys(0),
   m_tempValues(0),
   m_counters(0),
   m_countersSum(0),
-  m_blockOffsets(0) 
+  m_blockOffsets(0)
 {
     size_t numBlocks2 = ((numElements % (SORT_CTA_SIZE * 2)) == 0) ?
             (numElements / (SORT_CTA_SIZE * 2)) : (numElements / (SORT_CTA_SIZE * 2) + 1);
 
-    CUDPPConfiguration scanConfig = 
-    { 
-      CUDPP_SCAN, 
-      CUDPP_ADD, 
-      CUDPP_UINT, 
-      CUDPP_OPTION_FORWARD | CUDPP_OPTION_EXCLUSIVE 
-    };    
+    CUDPPConfiguration scanConfig =
+    {
+      CUDPP_SCAN,
+      CUDPP_ADD,
+      CUDPP_UINT,
+      CUDPP_OPTION_FORWARD | CUDPP_OPTION_EXCLUSIVE
+    };
 
-    m_scanPlan = new CUDPPScanPlan(mgr, scanConfig, numBlocks2*16, 1, 0);    
-        
-    allocRadixSortStorage(this); 
+    m_scanPlan = new CUDPPScanPlan(mgr, scanConfig, numBlocks2*16, 1, 0);
+
+    allocRadixSortStorage(this);
 }
 
 /** @brief Radix sort plan destructor */
@@ -621,12 +621,12 @@ CUDPPRadixSortPlan::~CUDPPRadixSortPlan()
 }
 
 /** @brief SparseMatrixVectorMultiply Plan constructor
-* 
+*
 * @param[in]  mgr pointer to the CUDPPManager
 * @param[in]  config The configuration struct specifying options
 * @param[in]  numNonZeroElements The number of non-zero elements in sparse matrix
 * @param[in]  A Array of non-zero matrix elements
-* @param[in]  rowIndex Array of indices of the first element of each row 
+* @param[in]  rowIndex Array of indices of the first element of each row
 *                     in the "flattened" version of the sparse matrix
 * @param[in]  index Array of indices of non-zero elements in the matrix
 * @param[in]  numRows The number of rows in the sparse matrix
@@ -646,14 +646,14 @@ CUDPPSparseMatrixVectorMultiplyPlan::CUDPPSparseMatrixVectorMultiplyPlan(CUDPPMa
   m_d_rowFinalIndex(0),
   m_rowFinalIndex(0),
   m_numRows(numRows),
-  m_numNonZeroElements(numNonZeroElements)  
+  m_numNonZeroElements(numNonZeroElements)
 {
-    CUDPPConfiguration segScanConfig = 
-    { 
-      CUDPP_SEGMENTED_SCAN, 
-      CUDPP_ADD, 
-      config.datatype, 
-      (CUDPP_OPTION_FORWARD | CUDPP_OPTION_INCLUSIVE) 
+    CUDPPConfiguration segScanConfig =
+    {
+      CUDPP_SEGMENTED_SCAN,
+      CUDPP_ADD,
+      config.datatype,
+      (CUDPP_OPTION_FORWARD | CUDPP_OPTION_INCLUSIVE)
     };
     m_segmentedScanPlan = new CUDPPSegmentedScanPlan(mgr, segScanConfig, m_numNonZeroElements);
 
@@ -685,11 +685,11 @@ CUDPPSparseMatrixVectorMultiplyPlan::~CUDPPSparseMatrixVectorMultiplyPlan()
   * @param[in] config The configuration struct specifying options
   * @param[in] num_elements The number of elements to generate random bits for
   */
-CUDPPRandPlan::CUDPPRandPlan(CUDPPManager *mgr, CUDPPConfiguration config, size_t num_elements) 
+CUDPPRandPlan::CUDPPRandPlan(CUDPPManager *mgr, CUDPPConfiguration config, size_t num_elements)
  : CUDPPPlan(mgr, config, num_elements, 1, 0),
    m_seed(0)
 {
-    
+
 }
 
 /** @brief CUDPP Tridiagonal Plan Constructor
@@ -697,10 +697,10 @@ CUDPPRandPlan::CUDPPRandPlan(CUDPPManager *mgr, CUDPPConfiguration config, size_
   * @param[in]  mgr pointer to the CUDPPManager
   * @param[in] config The configuration struct specifying options
   */
-CUDPPTridiagonalPlan::CUDPPTridiagonalPlan(CUDPPManager *mgr, CUDPPConfiguration config) 
+CUDPPTridiagonalPlan::CUDPPTridiagonalPlan(CUDPPManager *mgr, CUDPPConfiguration config)
  : CUDPPPlan(mgr, config, 0, 0, 0)
 {
-    
+
 }
 
 /** @brief CUDPP Compress Plan Constructor
@@ -709,7 +709,7 @@ CUDPPTridiagonalPlan::CUDPPTridiagonalPlan(CUDPPManager *mgr, CUDPPConfiguration
   * @param[in] config The configuration struct specifying options
   * @param[in] numElements The maximum number of elements to be compressed
   */
-CUDPPCompressPlan::CUDPPCompressPlan(CUDPPManager *mgr, CUDPPConfiguration config, size_t numElements) 
+CUDPPCompressPlan::CUDPPCompressPlan(CUDPPManager *mgr, CUDPPConfiguration config, size_t numElements)
  : CUDPPPlan(mgr, config, numElements, 1, 0)
 {
     m_saPlan = new CUDPPSaPlan(mgr, config, numElements);
@@ -729,7 +729,7 @@ CUDPPCompressPlan::~CUDPPCompressPlan()
   * @param[in] config The configuration struct specifying options
   * @param[in] numElements The maximum number of elements to be transformed
   */
-CUDPPBwtPlan::CUDPPBwtPlan(CUDPPManager *mgr, CUDPPConfiguration config, size_t numElements) 
+CUDPPBwtPlan::CUDPPBwtPlan(CUDPPManager *mgr, CUDPPConfiguration config, size_t numElements)
  : CUDPPPlan(mgr, config, numElements, 1, 0)
 {
     m_saPlan = new CUDPPSaPlan(mgr, config, numElements);
@@ -749,7 +749,7 @@ CUDPPBwtPlan::~CUDPPBwtPlan()
   * @param[in] config The configuration struct specifying options
   * @param[in] numElements The maximum number of elements to be moved to front
   */
-CUDPPMtfPlan::CUDPPMtfPlan(CUDPPManager *mgr, CUDPPConfiguration config, size_t numElements) 
+CUDPPMtfPlan::CUDPPMtfPlan(CUDPPManager *mgr, CUDPPConfiguration config, size_t numElements)
  : CUDPPPlan(mgr, config, numElements, 1, 0)
 {
     allocMtfStorage(this);
@@ -767,7 +767,7 @@ CUDPPMtfPlan::~CUDPPMtfPlan()
   * @param[in] config The configuration struct specifying options
   * @param[in] numElements The maximum number of elements to be ranked
   */
-CUDPPListRankPlan::CUDPPListRankPlan(CUDPPManager *mgr, CUDPPConfiguration config, size_t numElements) 
+CUDPPListRankPlan::CUDPPListRankPlan(CUDPPManager *mgr, CUDPPConfiguration config, size_t numElements)
  : CUDPPPlan(mgr, config, numElements, 1, 0)
 {
     allocListRankStorage(this);
