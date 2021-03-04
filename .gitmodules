@@ -1,3 +1,0 @@
-[submodule "ext/cub"]
-	path = ext/cub
-	url = git://github.com/NVlabs/cub.git
