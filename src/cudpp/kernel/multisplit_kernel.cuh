@@ -128,10 +128,10 @@ __global__ void histogram_pre_scan_compaction(key_t* input, uint32_t* bin, uint3
         valid_input = true;
       }
       // masking out those threads which read an invalid key
-      uint32_t mask = __ballot(valid_input);
+      uint32_t mask = __ballot_sync(0xFFFFFFFF, valid_input);
 
       // computing histogram
-      uint32_t rx_buffer = __ballot(bucket_identifier(myInput[kk]));
+      uint32_t rx_buffer = __ballot_sync(0xFFFFFFFF, bucket_identifier(myInput[kk]));
       uint32_t myHisto = 0xFFFFFFFF & (((laneId) & 0x01)?rx_buffer:(0xFFFFFFFF ^ rx_buffer));
       binCounter[kk] = __popc(myHisto & mask);
 
@@ -173,7 +173,7 @@ __global__ void histogram_pre_scan_compaction(key_t* input, uint32_t* bin, uint3
 
       myInput[kk] = input[global_index + laneId];
 
-      uint32_t rx_buffer = __ballot(bucket_identifier(myInput[kk]));
+      uint32_t rx_buffer = __ballot_sync(0xFFFFFFFF, bucket_identifier(myInput[kk]));
       uint32_t myHisto = 0xFFFFFFFF & (((laneId) & 0x01)?rx_buffer:(0xFFFFFFFF ^ rx_buffer));
       binCounter[kk] = __popc(myHisto);
 
@@ -251,10 +251,10 @@ __global__ void split_post_scan_compaction(key_t* key_input, uint32_t* warpOffse
         myBucket = (bucket_identifier(myInput[kk]))?1u:0u;
       }
 
-      uint32_t mask = __ballot(valid_input);
+      uint32_t mask = __ballot_sync(0xFFFFFFFF, valid_input);
 
       // Computing the histogram and local indices:
-      uint32_t rx_buffer = __ballot(myBucket);
+      uint32_t rx_buffer = __ballot_sync(0xFFFFFFFF, myBucket);
       uint32_t myMask  = 0xFFFFFFFF & ((myBucket)?rx_buffer:(0xFFFFFFFF ^ rx_buffer));
       uint32_t myHisto = 0xFFFFFFFF & (((laneId) & 0x01)?rx_buffer:(0xFFFFFFFF ^ rx_buffer));
 
@@ -305,7 +305,7 @@ __global__ void split_post_scan_compaction(key_t* key_input, uint32_t* warpOffse
       // Computing the histogram and local indices:
 
       uint32_t myBucket = bucket_identifier(myInput[kk]);
-      uint32_t rx_buffer = __ballot(myBucket);
+      uint32_t rx_buffer = __ballot_sync(0xFFFFFFFF, myBucket);
       uint32_t myMask  = 0xFFFFFFFF  & ((myBucket)?rx_buffer:(0xFFFFFFFF ^ rx_buffer));
       uint32_t myHisto = 0xFFFFFFFF & (((laneId) & 0x01)?rx_buffer:(0xFFFFFFFF ^ rx_buffer));
 
@@ -396,10 +396,10 @@ __global__ void split_post_scan_pairs_compaction(key_t* key_input, value_t* valu
         myBucket = (bucket_identifier(myInput[kk]))?1u:0u;
       }
 
-      uint32_t mask = __ballot(valid_input);
+      uint32_t mask = __ballot_sync(0xFFFFFFFF, valid_input);
 
       // Computing the histogram and local indices:
-      uint32_t rx_buffer = __ballot(myBucket);
+      uint32_t rx_buffer = __ballot_sync(0xFFFFFFFF, myBucket);
       uint32_t myMask  = 0xFFFFFFFF & ((myBucket)?rx_buffer:(0xFFFFFFFF ^ rx_buffer));
       uint32_t myHisto = 0xFFFFFFFF & (((laneId) & 0x01)?rx_buffer:(0xFFFFFFFF ^ rx_buffer));
 
@@ -455,7 +455,7 @@ __global__ void split_post_scan_pairs_compaction(key_t* key_input, value_t* valu
       // Computing the histogram and local indices:
 
       uint32_t myBucket = bucket_identifier(myInput[kk]);
-      uint32_t rx_buffer = __ballot(myBucket);
+      uint32_t rx_buffer = __ballot_sync(0xFFFFFFFF, myBucket);
       uint32_t myMask  = 0xFFFFFFFF  & ((myBucket)?rx_buffer:(0xFFFFFFFF ^ rx_buffer));
       uint32_t myHisto = 0xFFFFFFFF & (((laneId) & 0x01)?rx_buffer:(0xFFFFFFFF ^ rx_buffer));
 
@@ -544,13 +544,13 @@ __global__ void multisplit_WMS_prescan(key_type* input, uint32_t* bin, uint32_t 
       uint32_t myHisto = 0xFFFFFFFF;
       uint32_t bit = myBucket;
       uint32_t rx_buffer;
-      uint32_t mask = __ballot(valid_input);
+      uint32_t mask = __ballot_sync(0xFFFFFFFF, valid_input);
 
       // computing histogram
       #pragma unroll
       for(int i = 0; i<LOG_B; i++)
       {
-        rx_buffer = __ballot(bit & 0x01);
+        rx_buffer = __ballot_sync(0xFFFFFFFF, bit & 0x01);
         myHisto = myHisto & (((laneId >> i) & 0x01)?rx_buffer:(0xFFFFFFFF ^ rx_buffer));
         bit >>= 1;
       }
@@ -602,7 +602,7 @@ __global__ void multisplit_WMS_prescan(key_type* input, uint32_t* bin, uint32_t 
       #pragma unroll
       for(int i = 0; i<LOG_B; i++)
       {
-        rx_buffer = __ballot(bit & 0x01);
+        rx_buffer = __ballot_sync(0xFFFFFFFF, bit & 0x01);
         myHisto = myHisto & (((laneId >> i) & 0x01)?rx_buffer:(0xFFFFFFFF ^ rx_buffer));
         bit >>= 1;
       }
@@ -682,7 +682,7 @@ __global__ void multisplit_WMS_postscan(key_type* key_input, uint32_t* warpOffse
         myBucket = bucket_identifier(myInput[kk]);
       }
 
-      uint32_t mask = __ballot(valid_input);
+      uint32_t mask = __ballot_sync(0xFFFFFFFF, valid_input);
       uint32_t myMask = 0xFFFFFFFF;
       uint32_t myHisto = 0xFFFFFFFF;
       uint32_t bit = myBucket;
@@ -691,7 +691,7 @@ __global__ void multisplit_WMS_postscan(key_type* key_input, uint32_t* warpOffse
       #pragma unroll
       for(int i = 0; i<LOG_B; i++)
       {
-        rx_buffer = __ballot(bit & 0x01);
+        rx_buffer = __ballot_sync(0xFFFFFFFF, bit & 0x01);
         myMask  = myMask  & ((bit & 0x01)?rx_buffer:(0xFFFFFFFF ^ rx_buffer));
         myHisto = myHisto & (((laneId >> i) & 0x01)?rx_buffer:(0xFFFFFFFF ^ rx_buffer));
         bit >>= 1;
@@ -756,7 +756,7 @@ __global__ void multisplit_WMS_postscan(key_type* key_input, uint32_t* warpOffse
       #pragma unroll
       for(int i = 0; i<LOG_B; i++)
       {
-        rx_buffer = __ballot(bit & 0x01);
+        rx_buffer = __ballot_sync(0xFFFFFFFF, bit & 0x01);
         myMask  = myMask  & ((bit & 0x01)?rx_buffer:(0xFFFFFFFF ^ rx_buffer));
         myHisto = myHisto & (((laneId >> i) & 0x01)?rx_buffer:(0xFFFFFFFF ^ rx_buffer));
         bit >>= 1;
@@ -849,7 +849,7 @@ __global__ void multisplit_WMS_pairs_postscan(key_type* key_input, value_type* v
         myBucket = bucket_identifier(myInput[kk]);
       }
 
-      uint32_t mask = __ballot(valid_input);
+      uint32_t mask = __ballot_sync(0xFFFFFFFF, valid_input);
       uint32_t myMask = 0xFFFFFFFF;
       uint32_t myHisto = 0xFFFFFFFF;
       uint32_t bit = myBucket;
@@ -858,7 +858,7 @@ __global__ void multisplit_WMS_pairs_postscan(key_type* key_input, value_type* v
       #pragma unroll
       for(int i = 0; i<LOG_B; i++)
       {
-        rx_buffer = __ballot(bit & 0x01);
+        rx_buffer = __ballot_sync(0xFFFFFFFF, bit & 0x01);
         myMask  = myMask  & ((bit & 0x01)?rx_buffer:(0xFFFFFFFF ^ rx_buffer));
         myHisto = myHisto & (((laneId >> i) & 0x01)?rx_buffer:(0xFFFFFFFF ^ rx_buffer));
         bit >>= 1;
@@ -929,7 +929,7 @@ __global__ void multisplit_WMS_pairs_postscan(key_type* key_input, value_type* v
       #pragma unroll
       for(int i = 0; i<LOG_B; i++)
       {
-        rx_buffer = __ballot(bit & 0x01);
+        rx_buffer = __ballot_sync(0xFFFFFFFF, bit & 0x01);
         myMask  = myMask  & ((bit & 0x01)?rx_buffer:(0xFFFFFFFF ^ rx_buffer));
         myHisto = myHisto & (((laneId >> i) & 0x01)?rx_buffer:(0xFFFFFFFF ^ rx_buffer));
         bit >>= 1;
@@ -1018,13 +1018,13 @@ __global__ void multisplit_BMS_prescan(key_type* input, uint32_t* bin, uint32_t 
       uint32_t myHisto = 0xFFFFFFFF;
       uint32_t bit = myBucket;
       uint32_t rx_buffer;
-      uint32_t mask = __ballot(valid_input);
+      uint32_t mask = __ballot_sync(0xFFFFFFFF, valid_input);
 
       // computing histogram
       #pragma unroll
       for(int i = 0; i<LOG_B; i++)
       {
-        rx_buffer = __ballot(bit & 0x01);
+        rx_buffer = __ballot_sync(0xFFFFFFFF, bit & 0x01);
         myHisto = myHisto & (((laneId >> i) & 0x01)?rx_buffer:(0xFFFFFFFF ^ rx_buffer));
         bit >>= 1;
       }
@@ -1091,7 +1091,7 @@ __global__ void multisplit_BMS_prescan(key_type* input, uint32_t* bin, uint32_t 
       #pragma unroll
       for(int i = 0; i<LOG_B; i++)
       {
-        rx_buffer = __ballot(bit & 0x01);
+        rx_buffer = __ballot_sync(0xFFFFFFFF, bit & 0x01);
         myHisto = myHisto & (((laneId >> i) & 0x01)?rx_buffer:(0xFFFFFFFF ^ rx_buffer));
         bit >>= 1;
       }
@@ -1179,13 +1179,13 @@ __global__ void multisplit_BMS_postscan(key_type* key_input, uint32_t* blockOffs
       uint32_t myLocalIndex = 0xFFFFFFFF;
       uint32_t bit = myBucket;
       uint32_t rx_buffer;
-      uint32_t mask = __ballot(valid_input);
+      uint32_t mask = __ballot_sync(0xFFFFFFFF, valid_input);
 
       // computing histogram
       #pragma unroll
       for(int i = 0; i<LOG_B; i++)
       {
-        rx_buffer = __ballot(bit & 0x01);
+        rx_buffer = __ballot_sync(0xFFFFFFFF, bit & 0x01);
         myLocalIndex  = myLocalIndex  & ((bit & 0x01)?rx_buffer:(0xFFFFFFFF ^ rx_buffer));
         myHisto = myHisto & (((laneId >> i) & 0x01)?rx_buffer:(0xFFFFFFFF ^ rx_buffer));
         bit >>= 1;
@@ -1275,7 +1275,7 @@ __global__ void multisplit_BMS_postscan(key_type* key_input, uint32_t* blockOffs
       #pragma unroll
       for(int i = 0; i<LOG_B; i++)
       {
-        rx_buffer = __ballot(bit & 0x01);
+        rx_buffer = __ballot_sync(0xFFFFFFFF, bit & 0x01);
         myLocalIndex  = myLocalIndex  & ((bit & 0x01)?rx_buffer:(0xFFFFFFFF ^ rx_buffer));
         myHisto = myHisto & (((laneId >> i) & 0x01)?rx_buffer:(0xFFFFFFFF ^ rx_buffer));
         bit >>= 1;
@@ -1391,13 +1391,13 @@ __global__ void multisplit_BMS_pairs_postscan(key_type* key_input, value_type* v
       uint32_t myLocalIndex = 0xFFFFFFFF;
       uint32_t bit = myBucket;
       uint32_t rx_buffer;
-      uint32_t mask = __ballot(valid_input);
+      uint32_t mask = __ballot_sync(0xFFFFFFFF, valid_input);
 
       // computing histogram
       #pragma unroll
       for(int i = 0; i<LOG_B; i++)
       {
-        rx_buffer = __ballot(bit & 0x01);
+        rx_buffer = __ballot_sync(0xFFFFFFFF, bit & 0x01);
         myLocalIndex  = myLocalIndex  & ((bit & 0x01)?rx_buffer:(0xFFFFFFFF ^ rx_buffer));
         myHisto = myHisto & (((laneId >> i) & 0x01)?rx_buffer:(0xFFFFFFFF ^ rx_buffer));
         bit >>= 1;
@@ -1490,7 +1490,7 @@ __global__ void multisplit_BMS_pairs_postscan(key_type* key_input, value_type* v
       #pragma unroll
       for(int i = 0; i<LOG_B; i++)
       {
-        rx_buffer = __ballot(bit & 0x01);
+        rx_buffer = __ballot_sync(0xFFFFFFFF, bit & 0x01);
         myLocalIndex  = myLocalIndex  & ((bit & 0x01)?rx_buffer:(0xFFFFFFFF ^ rx_buffer));
         myHisto = myHisto & (((laneId >> i) & 0x01)?rx_buffer:(0xFFFFFFFF ^ rx_buffer));
         bit >>= 1;

@@ -1,7 +1,7 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
  * Copyright (c) 2011-2016, NVIDIA CORPORATION.  All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the NVIDIA CORPORATION nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -191,7 +191,7 @@ struct WarpReduceSmem
         Int2Type<true>  has_ballot)         ///< [in] Marker type for whether the target arch has ballot functionality
     {
         // Get the start flags for each thread in the warp.
-        int warp_flags = __ballot(flag);
+        int warp_flags = __ballot_sync(0xFFFFFFFF, flag);
 
         if (!HEAD_SEGMENTED)
             warp_flags <<= 1;
