@@ -3,10 +3,10 @@
 // -------------------------------------------------------------
 // $Revision$
 // $Date$
-// ------------------------------------------------------------- 
-// This source code is distributed under the terms of license.txt 
+// -------------------------------------------------------------
+// This source code is distributed under the terms of license.txt
 // in the root directory of this source distribution.
-// ------------------------------------------------------------- 
+// -------------------------------------------------------------
 
 #include "cudpp_multisplit.h"
 #include <cudpp_globals.h>
@@ -33,7 +33,7 @@ typedef unsigned long long int uint64;
 /**
  * @file
  * multisplit_kernel.cu
- *   
+ *
  * @brief CUDPP kernel-level multisplit routines
  */
 
@@ -261,7 +261,7 @@ __global__ void split_post_scan_compaction(key_t* key_input, uint32_t* warpOffse
       // writing back the local masks:
       binCounter[kk] = __popc(myHisto & mask);
       scan_histo[kk] = binCounter[kk];
-      uint32_t n = __shfl(scan_histo[kk], 0, 2);
+      uint32_t n = __shfl_sync(0xFFFFFFFF, scan_histo[kk], 0, 2);
       if(laneId == 1)
         scan_histo[kk] += n;
 
@@ -269,7 +269,7 @@ __global__ void split_post_scan_compaction(key_t* key_input, uint32_t* warpOffse
 
       // finding its new index within the warp:
       myNewIndex[kk]  = __popc(myMask & (0xFFFFFFFF >> (31-laneId))) - 1;
-      myNewIndex[kk] += __shfl(scan_histo[kk], myBucket, 32);
+      myNewIndex[kk] += __shfl_sync(0xFFFFFFFF, scan_histo[kk], myBucket, 32);
 
       myNewIndex[kk] = (valid_input)?myNewIndex[kk]:32; // if 32 it means that input was not valid
     }
@@ -288,7 +288,7 @@ __global__ void split_post_scan_compaction(key_t* key_input, uint32_t* warpOffse
       key_t myNewKey = (valid_input)?keys_ms_smem[(warpId << 5)*DEPTH + (kk<<5) + laneId]:0xFFFFFFFF;
 
       uint32_t finalIndex = (valid_input)?warp_offsets_smem[NUM_W * DEPTH * bucket_identifier(myNewKey) + warpId * DEPTH + kk] + laneId:0;
-      finalIndex -= __shfl(scan_histo[kk], bucket_identifier(myNewKey), 32);
+      finalIndex -= __shfl_sync(0xFFFFFFFF, scan_histo[kk], bucket_identifier(myNewKey), 32);
 
       if(valid_input)
         key_output[finalIndex] = myNewKey;
@@ -314,7 +314,7 @@ __global__ void split_post_scan_compaction(key_t* key_input, uint32_t* warpOffse
 
       scan_histo[kk] = binCounter[kk];
 
-      uint32_t n = __shfl(scan_histo[kk], 0, 2);
+      uint32_t n = __shfl_sync(0xFFFFFFFF, scan_histo[kk], 0, 2);
 
       if(laneId == 1)
         scan_histo[kk] += n;
@@ -323,7 +323,7 @@ __global__ void split_post_scan_compaction(key_t* key_input, uint32_t* warpOffse
 
       // finding its new index within the warp:
       myNewIndex[kk]  = __popc(myMask & (0xFFFFFFFF >> (31-laneId))) - 1;
-      myNewIndex[kk] += __shfl(scan_histo[kk], myBucket, 32);
+      myNewIndex[kk] += __shfl_sync(0xFFFFFFFF, scan_histo[kk], myBucket, 32);
     }
 
     // Reordering key elements in shared memory:
@@ -339,7 +339,7 @@ __global__ void split_post_scan_compaction(key_t* key_input, uint32_t* warpOffse
 
       uint32_t myNewBucket = bucket_identifier(myNewKey);
       uint32_t finalIndex = warp_offsets_smem[NUM_W * DEPTH * myNewBucket + warpId * DEPTH + kk] + laneId;
-      finalIndex -= __shfl(scan_histo[kk], myNewBucket, 32);
+      finalIndex -= __shfl_sync(0xFFFFFFFF, scan_histo[kk], myNewBucket, 32);
       key_output[finalIndex] = myNewKey;
     }
   }
@@ -406,7 +406,7 @@ __global__ void split_post_scan_pairs_compaction(key_t* key_input, value_t* valu
       // writing back the local masks:
       binCounter[kk] = __popc(myHisto & mask);
       scan_histo[kk] = binCounter[kk];
-      uint32_t n = __shfl(scan_histo[kk], 0, 2);
+      uint32_t n = __shfl_sync(0xFFFFFFFF, scan_histo[kk], 0, 2);
       if(laneId == 1)
         scan_histo[kk] += n;
 
@@ -414,7 +414,7 @@ __global__ void split_post_scan_pairs_compaction(key_t* key_input, value_t* valu
 
       // finding its new index within the warp:
       myNewIndex[kk]  = __popc(myMask & (0xFFFFFFFF >> (31-laneId))) - 1;
-      myNewIndex[kk] += __shfl(scan_histo[kk], myBucket, 32);
+      myNewIndex[kk] += __shfl_sync(0xFFFFFFFF, scan_histo[kk], myBucket, 32);
 
       myNewIndex[kk] = (valid_input)?myNewIndex[kk]:32; // if 32 it means that input was not valid
     }
@@ -435,7 +435,7 @@ __global__ void split_post_scan_pairs_compaction(key_t* key_input, value_t* valu
       value_t myNewValue = (valid_input)?values_ms_smem[(warpId << 5)*DEPTH + (kk<<5) + laneId]:0xFFFFFFFF;
 
       uint32_t finalIndex = (valid_input)?warp_offsets_smem[NUM_W * DEPTH * bucket_identifier(myNewKey) + warpId * DEPTH + kk] + laneId:0;
-      finalIndex -= __shfl(scan_histo[kk], bucket_identifier(myNewKey), 32);
+      finalIndex -= __shfl_sync(0xFFFFFFFF, scan_histo[kk], bucket_identifier(myNewKey), 32);
 
       if(valid_input){
         key_output[finalIndex] = myNewKey;
@@ -464,7 +464,7 @@ __global__ void split_post_scan_pairs_compaction(key_t* key_input, value_t* valu
 
       scan_histo[kk] = binCounter[kk];
 
-      uint32_t n = __shfl(scan_histo[kk], 0, 2);
+      uint32_t n = __shfl_sync(0xFFFFFFFF, scan_histo[kk], 0, 2);
 
       if(laneId == 1)
         scan_histo[kk] += n;
@@ -473,7 +473,7 @@ __global__ void split_post_scan_pairs_compaction(key_t* key_input, value_t* valu
 
       // finding its new index within the warp:
       myNewIndex[kk]  = __popc(myMask & (0xFFFFFFFF >> (31-laneId))) - 1;
-      myNewIndex[kk] += __shfl(scan_histo[kk], myBucket, 32);
+      myNewIndex[kk] += __shfl_sync(0xFFFFFFFF, scan_histo[kk], myBucket, 32);
     }
 
     // Reordering key elements in shared memory:
@@ -491,7 +491,7 @@ __global__ void split_post_scan_pairs_compaction(key_t* key_input, value_t* valu
 
       uint32_t myNewBucket = bucket_identifier(myNewKey);
       uint32_t finalIndex = warp_offsets_smem[NUM_W * DEPTH * myNewBucket + warpId * DEPTH + kk] + laneId;
-      finalIndex -= __shfl(scan_histo[kk], myNewBucket, 32);
+      finalIndex -= __shfl_sync(0xFFFFFFFF, scan_histo[kk], myNewBucket, 32);
       key_output[finalIndex] = myNewKey;
       value_output[finalIndex] = myNewValue;
     }
@@ -704,7 +704,7 @@ __global__ void multisplit_WMS_postscan(key_type* key_input, uint32_t* warpOffse
       #pragma unroll
       for(int i = 1; i<(1<<LOG_B); i<<=1)
       {
-        n = __shfl_up(scan_histo[kk], i, 32);
+        n = __shfl_up_sync(0xFFFFFFFF, scan_histo[kk], i, 32);
         if(laneId >= i)
           scan_histo[kk] += n;
       }
@@ -713,7 +713,7 @@ __global__ void multisplit_WMS_postscan(key_type* key_input, uint32_t* warpOffse
 
       // finding its new index within the warp:
       myNewIndex[kk]  = __popc(myMask & (0xFFFFFFFF >> (31-laneId))) - 1;
-      myNewIndex[kk] += __shfl(scan_histo[kk], myBucket, 32);
+      myNewIndex[kk] += __shfl_sync(0xFFFFFFFF, scan_histo[kk], myBucket, 32);
 
       myNewIndex[kk] = (valid_input)?myNewIndex[kk]:32; // if 32 it means that input was not valid
     }
@@ -732,7 +732,7 @@ __global__ void multisplit_WMS_postscan(key_type* key_input, uint32_t* warpOffse
       key_type myNewKey = (valid_input)?keys_ms_smem[(warpId << 5)*DEPTH + (kk<<5) + laneId]:0xFFFFFFFF;
       uint32_t myNewBucket = bucket_identifier(myNewKey);
       uint32_t finalIndex = (valid_input)?warp_offsets_smem[NUM_W * DEPTH * myNewBucket + warpId * DEPTH + kk] + laneId:0;
-      finalIndex -= __shfl(scan_histo[kk], myNewBucket, 32);
+      finalIndex -= __shfl_sync(0xFFFFFFFF, scan_histo[kk], myNewBucket, 32);
 
       if(valid_input)
         key_output[finalIndex] = myNewKey;
@@ -769,7 +769,7 @@ __global__ void multisplit_WMS_postscan(key_type* key_input, uint32_t* warpOffse
       #pragma unroll
       for(int i = 1; i<(1<<LOG_B); i<<=1)
       {
-        n = __shfl_up(scan_histo[kk], i, 32);
+        n = __shfl_up_sync(0xFFFFFFFF, scan_histo[kk], i, 32);
         if(laneId >= i)
           scan_histo[kk] += n;
       }
@@ -778,7 +778,7 @@ __global__ void multisplit_WMS_postscan(key_type* key_input, uint32_t* warpOffse
 
       // finding its new index within the warp:
       myNewIndex[kk]  = __popc(myMask & (0xFFFFFFFF >> (31-laneId))) - 1;
-      myNewIndex[kk] += __shfl(scan_histo[kk], myBucket, 32);
+      myNewIndex[kk] += __shfl_sync(0xFFFFFFFF, scan_histo[kk], myBucket, 32);
     }
 
     // Reordering key elements in shared memory:
@@ -793,7 +793,7 @@ __global__ void multisplit_WMS_postscan(key_type* key_input, uint32_t* warpOffse
       key_type myNewKey = keys_ms_smem[(warpId << 5)*DEPTH + (kk<<5) + laneId];
       uint32_t myNewBucket = bucket_identifier(myNewKey);
       uint32_t finalIndex = warp_offsets_smem[NUM_W * DEPTH * myNewBucket + warpId * DEPTH + kk] + laneId;
-      finalIndex -= __shfl(scan_histo[kk], myNewBucket, 32);
+      finalIndex -= __shfl_sync(0xFFFFFFFF, scan_histo[kk], myNewBucket, 32);
       key_output[finalIndex] = myNewKey;
     }
   }
@@ -872,7 +872,7 @@ __global__ void multisplit_WMS_pairs_postscan(key_type* key_input, value_type* v
       #pragma unroll
       for(int i = 1; i<(1<<LOG_B); i<<=1)
       {
-        n = __shfl_up(scan_histo[kk], i, 32);
+        n = __shfl_up_sync(0xFFFFFFFF, scan_histo[kk], i, 32);
         if(laneId >= i)
           scan_histo[kk] += n;
       }
@@ -880,7 +880,7 @@ __global__ void multisplit_WMS_pairs_postscan(key_type* key_input, value_type* v
 
       // finding its new index within the warp:
       myNewIndex[kk]  = __popc(myMask & (0xFFFFFFFF >> (31-laneId))) - 1;
-      myNewIndex[kk] += __shfl(scan_histo[kk], myBucket, 32);
+      myNewIndex[kk] += __shfl_sync(0xFFFFFFFF, scan_histo[kk], myBucket, 32);
 
       myNewIndex[kk] = (valid_input)?myNewIndex[kk]:32; // if 32 it means that input was not valid
     }
@@ -903,7 +903,7 @@ __global__ void multisplit_WMS_pairs_postscan(key_type* key_input, value_type* v
       uint32_t myNewBucket = bucket_identifier(myNewKey);
 
       uint32_t finalIndex = (valid_input)?warp_offsets_smem[NUM_W * DEPTH * myNewBucket + warpId * DEPTH + kk] + laneId:0;
-      finalIndex -= __shfl(scan_histo[kk], myNewBucket, 32);
+      finalIndex -= __shfl_sync(0xFFFFFFFF, scan_histo[kk], myNewBucket, 32);
 
       if(valid_input){
         key_output[finalIndex] = myNewKey;
@@ -942,7 +942,7 @@ __global__ void multisplit_WMS_pairs_postscan(key_type* key_input, value_type* v
       #pragma unroll
       for(int i = 1; i<(1<<LOG_B); i<<=1)
       {
-        n = __shfl_up(scan_histo[kk], i, 32);
+        n = __shfl_up_sync(0xFFFFFFFF, scan_histo[kk], i, 32);
         if(laneId >= i)
           scan_histo[kk] += n;
       }
@@ -950,7 +950,7 @@ __global__ void multisplit_WMS_pairs_postscan(key_type* key_input, value_type* v
 
       // finding its new index within the warp:
       myNewIndex[kk]  = __popc(myMask & (0xFFFFFFFF >> (31-laneId))) - 1;
-      myNewIndex[kk] += __shfl(scan_histo[kk], myBucket, 32);
+      myNewIndex[kk] += __shfl_sync(0xFFFFFFFF, scan_histo[kk], myBucket, 32);
     }
 
     // Reordering key elements in shared memory:
@@ -968,7 +968,7 @@ __global__ void multisplit_WMS_pairs_postscan(key_type* key_input, value_type* v
       uint32_t myNewBucket = bucket_identifier(myNewKey);
       uint32_t finalIndex = warp_offsets_smem[NUM_W * DEPTH * myNewBucket + warpId * DEPTH + kk] + laneId;
 
-      finalIndex -= __shfl(scan_histo[kk], myNewBucket, 32);
+      finalIndex -= __shfl_sync(0xFFFFFFFF, scan_histo[kk], myNewBucket, 32);
 
       key_output[finalIndex] = myNewKey;
       value_output[finalIndex] = myNewValue;
@@ -1210,7 +1210,7 @@ __global__ void multisplit_BMS_postscan(key_type* key_input, uint32_t* blockOffs
       }
       // Computing block-level indices:
       scan_temp[kk] -= binCounter[kk]; // exclusive scan
-      uint32_t myLocalBlockIndex = __shfl(scan_temp[kk], myBucket, 32);
+      uint32_t myLocalBlockIndex = __shfl_sync(0xFFFFFFFF, scan_temp[kk], myBucket, 32);
       myLocalBlockIndex += __popc(myLocalIndex & (0xFFFFFFFF >> (31-laneId))) - 1;
       myLocalBlockIndex = (valid_input)?myLocalBlockIndex:blockDim.x;
 
@@ -1224,7 +1224,7 @@ __global__ void multisplit_BMS_postscan(key_type* key_input, uint32_t* blockOffs
         #pragma unroll
         for(int i = 1; i<(1<<LOG_B); i<<=1)
         {
-          n = __shfl_up(block_scan, i, 32);
+          n = __shfl_up_sync(0xFFFFFFFF, block_scan, i, 32);
           if(laneId >= i)
             block_scan += n;
         }
@@ -1300,7 +1300,7 @@ __global__ void multisplit_BMS_postscan(key_type* key_input, uint32_t* blockOffs
       }
       // Computing block-level indices:
       scan_temp[kk] -= binCounter[kk]; // exclusive scan
-      uint32_t myLocalBlockIndex = __shfl(scan_temp[kk], myBucket, 32);
+      uint32_t myLocalBlockIndex = __shfl_sync(0xFFFFFFFF, scan_temp[kk], myBucket, 32);
       myLocalBlockIndex += __popc(myLocalIndex & (0xFFFFFFFF >> (31-laneId))) - 1;
 
       // Computing warp-level offsets within each block:
@@ -1313,7 +1313,7 @@ __global__ void multisplit_BMS_postscan(key_type* key_input, uint32_t* blockOffs
         #pragma unroll
         for(int i = 1; i<(1<<LOG_B); i<<=1)
         {
-          n = __shfl_up(block_scan, i, 32);
+          n = __shfl_up_sync(0xFFFFFFFF, block_scan, i, 32);
           if(laneId >= i)
             block_scan += n;
         }
@@ -1421,7 +1421,7 @@ __global__ void multisplit_BMS_pairs_postscan(key_type* key_input, value_type* v
       }
       // Computing block-level indices:
       scan_temp[kk] -= binCounter[kk]; // exclusive scan
-      uint32_t myLocalBlockIndex = __shfl(scan_temp[kk], myBucket, 32);
+      uint32_t myLocalBlockIndex = __shfl_sync(0xFFFFFFFF, scan_temp[kk], myBucket, 32);
       myLocalBlockIndex += __popc(myLocalIndex & (0xFFFFFFFF >> (31-laneId))) - 1;
       myLocalBlockIndex = (valid_input)?myLocalBlockIndex:blockDim.x;
 
@@ -1435,7 +1435,7 @@ __global__ void multisplit_BMS_pairs_postscan(key_type* key_input, value_type* v
         #pragma unroll
         for(int i = 1; i<(1<<LOG_B); i<<=1)
         {
-          n = __shfl_up(block_scan, i, 32);
+          n = __shfl_up_sync(0xFFFFFFFF, block_scan, i, 32);
           if(laneId >= i)
             block_scan += n;
         }
@@ -1515,7 +1515,7 @@ __global__ void multisplit_BMS_pairs_postscan(key_type* key_input, value_type* v
       }
       // Computing block-level indices:
       scan_temp[kk] -= binCounter[kk]; // exclusive scan
-      uint32_t myLocalBlockIndex = __shfl(scan_temp[kk], myBucket, 32);
+      uint32_t myLocalBlockIndex = __shfl_sync(0xFFFFFFFF, scan_temp[kk], myBucket, 32);
       myLocalBlockIndex += __popc(myLocalIndex & (0xFFFFFFFF >> (31-laneId))) - 1;
 
       // Computing warp-level offsets within each block:
@@ -1527,7 +1527,7 @@ __global__ void multisplit_BMS_pairs_postscan(key_type* key_input, value_type* v
         #pragma unroll
         for(int i = 1; i<(1<<LOG_B); i<<=1)
         {
-          n = __shfl_up(block_scan, i, 32);
+          n = __shfl_up_sync(0xFFFFFFFF, block_scan, i, 32);
           if(laneId >= i)
             block_scan += n;
         }
