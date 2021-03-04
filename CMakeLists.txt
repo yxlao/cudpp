@@ -13,7 +13,7 @@ find_package(CUDA REQUIRED)
 # Checkout: https://github.com/alichnewsky/cudpp/commit/a5cec35dd481a72c644fa8870acbf0bd0fd52978
 option(CUDPP_GENCODE_SM30 "ON to generate code for Compute Capability 3.0 devices)" OFF)
 option(CUDPP_GENCODE_SM35 "ON to generate code for Compute Capability 3.5 devices)" OFF)
-option(CUDPP_GENCODE_SM50 "ON to generate code for Compute Capability 5.0 devices)" ON)
+option(CUDPP_GENCODE_SM50 "ON to generate code for Compute Capability 5.0 devices)" OFF)
 option(CUDPP_GENCODE_SM75 "ON to generate code for Compute Capability 7.5 devices)" ON)
 
 set(GENCODE_SM30 -gencode=arch=compute_30,code=sm_30 -gencode=arch=compute_30,code=compute_30)
